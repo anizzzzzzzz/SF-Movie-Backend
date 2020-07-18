@@ -15,10 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import javax.persistence.criteria.Predicate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class MovieDataService implements IMovieDataService {
@@ -55,11 +52,12 @@ public class MovieDataService implements IMovieDataService {
     }
 
     @Override
-    public List<MovieData> getCoordinatesOfSearchData(DataQuery queryDto) {
-        return filterData(queryDto);
+    public List<MovieData> findAll() {
+        return movieRepository.findAll();
     }
 
-    protected List<MovieData> filterData(DataQuery queryDto) {
+    @Override
+    public List<MovieData> filterData(DataQuery queryDto) {
         return  movieRepository.findAll((Specification<MovieData>) (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -69,11 +67,51 @@ public class MovieDataService implements IMovieDataService {
                                 .equal(criteriaBuilder.lower(root.get("title")), queryDto.getTitle().toLowerCase())));
             }
 
-            if(!queryDto.getLocation().isEmpty()){
+            if(!queryDto.getLocations().isEmpty()){
                 predicates.add(
                         criteriaBuilder.and(criteriaBuilder.
-                                equal(criteriaBuilder.lower(root.get("locations")), queryDto.getLocation().toLowerCase())));
+                                equal(criteriaBuilder.lower(root.get("locations")), queryDto.getLocations().toLowerCase())));
             }
+            query.distinct(true);
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        });
+    }
+
+    @Override
+    public List<MovieData> autocompleteData(DataQuery queryDto) {
+        return  movieRepository.findAll((Specification<MovieData>) (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if(!queryDto.getTitle().isEmpty()){
+                predicates.add(
+                        criteriaBuilder.and(criteriaBuilder
+                                .like(criteriaBuilder.lower(root.get("title")),
+                                        "%" + queryDto.getTitle().toLowerCase() + "%")));
+            }
+
+            if(!queryDto.getLocations().isEmpty()){
+                predicates.add(
+                        criteriaBuilder.and(criteriaBuilder
+                                .like(criteriaBuilder.lower(root.get("locations")),
+                                        "%" + queryDto.getLocations().toLowerCase() + "%")));
+            }
+
+            if(!queryDto.getProductionCompany().isEmpty()){
+                predicates.add(
+                        criteriaBuilder.and(criteriaBuilder
+                                .like(criteriaBuilder.lower(root.get("productionCompany")),
+                                        "%" + queryDto.getProductionCompany().toLowerCase() + "%")));
+            }
+
+            if(!queryDto.getWriter().isEmpty()){
+                predicates.add(
+                        criteriaBuilder.and(criteriaBuilder
+                                .like(criteriaBuilder.lower(root.get("writer")),
+                                        "%" + queryDto.getWriter().toLowerCase() + "%")));
+            }
+
+            if(predicates.isEmpty())
+                return criteriaBuilder.disjunction();
             query.distinct(true);
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         });

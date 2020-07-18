@@ -10,5 +10,9 @@ public interface IMovieDataService {
 
     boolean isDataInitialized();
 
-    List<MovieData> getCoordinatesOfSearchData(DataQuery queryDto);
+    List<MovieData> findAll();
+
+    List<MovieData> filterData(DataQuery queryDto);
+
+    List<MovieData> autocompleteData(DataQuery queryDto);
 }
