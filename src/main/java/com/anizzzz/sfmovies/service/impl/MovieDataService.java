@@ -1,11 +1,14 @@
 package com.anizzzz.sfmovies.service.impl;
 
+import com.anizzzz.sfmovies.dto.CoordinatePosition;
 import com.anizzzz.sfmovies.dto.DataQuery;
 import com.anizzzz.sfmovies.model.MovieData;
 import com.anizzzz.sfmovies.repository.MovieDataRepository;
+import com.anizzzz.sfmovies.service.ICoordinatesUtilService;
 import com.anizzzz.sfmovies.service.IMovieDataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.jpa.domain.Specification;
@@ -15,21 +18,27 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import javax.persistence.criteria.Predicate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class MovieDataService implements IMovieDataService {
-    Logger logger = LoggerFactory.getLogger(this.getClass());
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Value("${sf-movie.data-url}")
     private String sfMovieUrl;
 
     private final MovieDataRepository movieRepository;
     private final RestTemplate restTemplate;
+    private final ICoordinatesUtilService coordinateService;
 
-    public MovieDataService(MovieDataRepository movieRepository, RestTemplate restTemplate) {
+    @Autowired
+    public MovieDataService(MovieDataRepository movieRepository, RestTemplate restTemplate, ICoordinatesUtilService coordinateService) {
         this.movieRepository = movieRepository;
         this.restTemplate = restTemplate;
+        this.coordinateService = coordinateService;
     }
 
     @Override
@@ -40,7 +49,17 @@ public class MovieDataService implements IMovieDataService {
 
         Optional<Set<MovieData>> optionalResponse = Optional.ofNullable(movieDataResponse.getBody());
         if(optionalResponse.isPresent()){
-            movieRepository.saveAll(optionalResponse.get());
+//            movieRepository.saveAll(optionalResponse.get());
+            optionalResponse.get().parallelStream().forEach(movieData -> {
+                if(!movieData.getLocations().isEmpty()){
+                    CoordinatePosition coordinatePosition = coordinateService.getCoordinates(movieData.getLocations());
+                    if(coordinatePosition != null){
+                        movieData.setLongitude(coordinatePosition.getPosition().getLng());
+                        movieData.setLatitude(coordinatePosition.getPosition().getLat());
+                    }
+                }
+                movieRepository.save(movieData.trimAll());
+            });
             return true;
         }
         return false;
@@ -49,32 +68,6 @@ public class MovieDataService implements IMovieDataService {
     @Override
     public boolean isDataInitialized() {
         return movieRepository.count() > 0;
-    }
-
-    @Override
-    public List<MovieData> findAll() {
-        return movieRepository.findAll();
-    }
-
-    @Override
-    public List<MovieData> filterData(DataQuery queryDto) {
-        return  movieRepository.findAll((Specification<MovieData>) (root, query, criteriaBuilder) -> {
-            List<Predicate> predicates = new ArrayList<>();
-
-            if(!queryDto.getTitle().isEmpty()){
-                predicates.add(
-                        criteriaBuilder.and(criteriaBuilder
-                                .equal(criteriaBuilder.lower(root.get("title")), queryDto.getTitle().toLowerCase())));
-            }
-
-            if(!queryDto.getLocations().isEmpty()){
-                predicates.add(
-                        criteriaBuilder.and(criteriaBuilder.
-                                equal(criteriaBuilder.lower(root.get("locations")), queryDto.getLocations().toLowerCase())));
-            }
-            query.distinct(true);
-            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
-        });
     }
 
     @Override
@@ -108,6 +101,27 @@ public class MovieDataService implements IMovieDataService {
                         criteriaBuilder.and(criteriaBuilder
                                 .like(criteriaBuilder.lower(root.get("writer")),
                                         "%" + queryDto.getWriter().toLowerCase() + "%")));
+            }
+
+            if(!queryDto.getActor1().isEmpty()){
+                predicates.add(
+                        criteriaBuilder.and(criteriaBuilder
+                                .like(criteriaBuilder.lower(root.get("actor1")),
+                                        "%" + queryDto.getActor1().toLowerCase() + "%")));
+            }
+
+            if(!queryDto.getActor2().isEmpty()){
+                predicates.add(
+                        criteriaBuilder.and(criteriaBuilder
+                                .like(criteriaBuilder.lower(root.get("actor2")),
+                                        "%" + queryDto.getActor2().toLowerCase() + "%")));
+            }
+
+            if(!queryDto.getActor3().isEmpty()){
+                predicates.add(
+                        criteriaBuilder.and(criteriaBuilder
+                                .like(criteriaBuilder.lower(root.get("actor3")),
+                                        "%" + queryDto.getActor3().toLowerCase() + "%")));
             }
 
             if(predicates.isEmpty())

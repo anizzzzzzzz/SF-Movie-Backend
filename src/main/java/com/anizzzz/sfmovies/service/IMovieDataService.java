@@ -10,9 +10,5 @@ public interface IMovieDataService {
 
     boolean isDataInitialized();
 
-    List<MovieData> findAll();
-
-    List<MovieData> filterData(DataQuery queryDto);
-
     List<MovieData> autocompleteData(DataQuery queryDto);
 }

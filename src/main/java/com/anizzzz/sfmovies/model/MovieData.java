@@ -40,6 +40,9 @@ public class MovieData {
     @Column(name = "actor_3", columnDefinition = "text")
     private String actor3 = "";
 
+    private String latitude = "";
+    private String longitude = "";
+
     public MovieData(String title, String releaseYear, String locations, String funFacts,
                      String productionCompany, String distributor, String writer, String actor1,
                      String actor2, String actor3) {
@@ -53,5 +56,21 @@ public class MovieData {
         this.actor1 = actor1;
         this.actor2 = actor2;
         this.actor3 = actor3;
+    }
+
+    public MovieData trimAll(){
+        this.setTitle(this.getTitle().trim());
+        this.setReleaseYear(this.getReleaseYear().trim());
+        this.setLocations(this.getLocations().trim());
+        this.setFunFacts(this.getFunFacts().trim());
+        this.setProductionCompany(this.getProductionCompany().trim());
+        this.setDistributor(this.getDistributor().trim());
+        this.setWriter(this.getWriter().trim());
+        this.setActor1(this.getActor1().trim());
+        this.setActor2(this.getActor2().trim());
+        this.setActor3(this.getActor3().trim());
+        this.setLatitude(this.getLatitude().trim());
+        this.setLongitude(this.getLongitude().trim());
+        return this;
     }
 }
