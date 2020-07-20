@@ -1,7 +1,7 @@
 package com.anizzzz.sfmovies.service.impl;
 
-import com.anizzzz.sfmovies.dto.CoordinatePosition;
 import com.anizzzz.sfmovies.dto.CoordinateItems;
+import com.anizzzz.sfmovies.dto.CoordinatePosition;
 import com.anizzzz.sfmovies.service.ICoordinatesUtilService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -21,8 +21,6 @@ import java.util.Optional;
 public class CoordinatesUtilService implements ICoordinatesUtilService {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @Value("${openstreetmap.url}")
-    private String openStreetUrl;
     @Value("${geocode.here.developer.url}")
     private String geocodeUrl;
     @Value("${geocode.here.developer.apikey}")
@@ -36,37 +34,6 @@ public class CoordinatesUtilService implements ICoordinatesUtilService {
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
     }
-
-    /*@Override
-    public List<CoordinateData> getCoordinates(String streetname) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        headers.set("Accept", MediaType.APPLICATION_JSON_VALUE);
-
-        HttpEntity<?> request = new HttpEntity<>(headers);
-
-        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(openStreetUrl)
-                .queryParam("format", "json")
-                .queryParam("addressdetails", 1)
-                .queryParam("city", "San Francisco")
-                .queryParam("street", streetname)
-                .queryParam("limit",1);
-
-        ResponseEntity<String> result = restTemplate.exchange(builder.build().encode().toUri(),
-                HttpMethod.GET,request, String.class);
-
-        if(result.getStatusCode() == HttpStatus.OK){
-            Optional<String> optionalResponse = Optional.ofNullable(result.getBody());
-            if(optionalResponse.isPresent()){
-                try {
-                    return objectMapper.readValue(optionalResponse.get(), new TypeReference<List<CoordinateData>>(){});
-                } catch (JsonProcessingException e) {
-                    logger.error("Error while fetching the coordinates");
-                }
-            }
-        }
-        return Collections.emptyList();
-    }*/
 
     @Override
     public CoordinatePosition getCoordinates(String streetname) {

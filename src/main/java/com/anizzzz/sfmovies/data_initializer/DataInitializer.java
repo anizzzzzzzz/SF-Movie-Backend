@@ -3,8 +3,10 @@ package com.anizzzz.sfmovies.data_initializer;
 import com.anizzzz.sfmovies.service.IMovieDataService;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+@Profile("!test")
 @Component
 public class DataInitializer implements ApplicationRunner {
     private final IMovieDataService movieService;
@@ -17,7 +19,7 @@ public class DataInitializer implements ApplicationRunner {
     public void run(ApplicationArguments args) throws Exception {
         /*Will load all the data from CSV file to DB*/
         if(!movieService.isDataInitialized()){
-            movieService.initializeDataToDB();
+            movieService.loadSFMovieData();
         }
     }
 }

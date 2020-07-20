@@ -6,7 +6,7 @@ import com.anizzzz.sfmovies.model.MovieData;
 import java.util.List;
 
 public interface IMovieDataService {
-    boolean initializeDataToDB();
+    boolean loadSFMovieData();
 
     boolean isDataInitialized();
 
