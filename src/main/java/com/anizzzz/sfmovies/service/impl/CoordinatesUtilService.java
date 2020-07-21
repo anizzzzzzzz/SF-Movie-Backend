@@ -1,5 +1,6 @@
 package com.anizzzz.sfmovies.service.impl;
 
+import com.anizzzz.sfmovies.config.GeocodeCredential;
 import com.anizzzz.sfmovies.dto.CoordinateItems;
 import com.anizzzz.sfmovies.dto.CoordinatePosition;
 import com.anizzzz.sfmovies.service.ICoordinatesUtilService;
@@ -21,18 +22,15 @@ import java.util.Optional;
 public class CoordinatesUtilService implements ICoordinatesUtilService {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @Value("${geocode.here.developer.url}")
-    private String geocodeUrl;
-    @Value("${geocode.here.developer.apikey}")
-    private String apiKey;
-
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
+    private final GeocodeCredential geocodeCredential;
 
     @Autowired
-    public CoordinatesUtilService(RestTemplate restTemplate, ObjectMapper objectMapper) {
+    public CoordinatesUtilService(RestTemplate restTemplate, ObjectMapper objectMapper, GeocodeCredential geocodeCredential) {
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
+        this.geocodeCredential = geocodeCredential;
     }
 
     @Override
@@ -43,10 +41,10 @@ public class CoordinatesUtilService implements ICoordinatesUtilService {
 
         HttpEntity<?> request = new HttpEntity<>(headers);
 
-        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(geocodeUrl)
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(geocodeCredential.getGeocodeUrl())
                 .queryParam("q", streetname + " San Francisco United States")
                 .queryParam("limit", 1)
-                .queryParam("apiKey", apiKey);
+                .queryParam("apiKey", geocodeCredential.getApiKey());
 
         ResponseEntity<String> result = restTemplate.exchange(builder.build().encode().toUri(),
                 HttpMethod.GET,request, String.class);
