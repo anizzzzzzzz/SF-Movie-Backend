@@ -10,6 +10,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class CronJobsController {
     @GetMapping
     public ResponseEntity<?> alive(){
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok("Ok");
     }
 }
